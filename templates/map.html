@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoApp | Buscador</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map { height: 550px; width: 100%; z-index: 1; filter: grayscale(10%) contrast(90%); }
+        .leaflet-container { font-family: inherit !important; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans antialiased text-slate-900">
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 py-4">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <a href="/" class="text-xl font-bold tracking-tight text-slate-800">GeoApp</a>
+            </div>
+            <nav class="hidden md:flex space-x-6 text-sm font-medium text-slate-500">
+                <span class="hover:text-blue-600 transition-colors">OSM API</span>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 max-w-5xl py-12">
+        <div class="max-w-2xl mx-auto text-center mb-12">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800">Localizar destino</h2>
+            <form method="POST" class="relative group">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </div>
+                <input type="text" name="lugar" placeholder="Ciudad, país o dirección..." 
+                    class="w-full pl-12 pr-32 py-4 bg-white border border-slate-200 rounded-2xl shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-slate-700" required>
+                <button type="submit" class="absolute right-2 top-2 bg-slate-900 hover:bg-black text-white px-6 py-2.5 rounded-xl font-medium text-sm transition-all active:scale-95 shadow-lg">
+                    Buscar
+                </button>
+            </form>
+        </div>
+
+        {% if lat %}
+        <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden animate-in fade-in duration-700">
+            <div class="px-6 py-4 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center space-x-3 text-slate-700">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-sm font-semibold tracking-wide uppercase">{{ nombre }}</span>
+                </div>
+                <div class="text-xs text-slate-400 font-mono">{{ lat }}, {{ lon }}</div>
+            </div>
+            <div id="map"></div>
+        </div>
+
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+        <script>
+            // JS limpio para evitar el Uncaught SyntaxError [cite: 286]
+            var map = L.map('map', { 
+                zoomControl: false, 
+                scrollWheelZoom: true 
+            }).setView([{{ lat }}, {{ lon }}], 13);
+            
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(map);
+
+            var customIcon = L.divIcon({
+                html: `<div class="p-2 bg-blue-600 rounded-full border-4 border-white shadow-lg"></div>`,
+                className: '',
+                iconSize: [20, 20]
+            });
+
+            L.marker([{{ lat }}, {{ lon }}], { icon: customIcon })
+                .addTo(map)
+                .bindPopup("<div class='p-2 font-medium text-slate-800'>{{ nombre }}</div>", { closeButton: false })
+                .openPopup();
+        </script>
+        {% endif %}
+    </main>
+</body>
+</html>
